@@ -1,12 +1,20 @@
+import { cookies } from 'next/headers';
 import type { Kategori, Komik, Anggota, Peminjaman } from '../types';
 
 const API_BASE_URL = process.env.API_BASE_URL as string;
-const API_TOKEN = process.env.API_TOKEN as string;
+
+// Helper untuk membaca token dari cookie
+async function getToken(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get('token')?.value;
+}
 
 async function fetchAPI<T>(endpoint: string): Promise<T> {
+  const token = await getToken();
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
-      Authorization: `Bearer ${API_TOKEN}`,
+      Authorization: `Bearer ${token}`,
     },
     cache: 'no-store',
   });
@@ -21,8 +29,9 @@ async function fetchAPI<T>(endpoint: string): Promise<T> {
 
 // Kategori jarang berubah — simpan cache 60 detik
 export async function getKategoriList(): Promise<Kategori[]> {
+  const token = await getToken();
   const response = await fetch(`${API_BASE_URL}/kategori`, {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    headers: { Authorization: `Bearer ${token}` },
     next: { revalidate: 60 },
   });
   const hasil = await response.json();
@@ -31,8 +40,9 @@ export async function getKategoriList(): Promise<Kategori[]> {
 
 // Komik bisa berubah stoknya — simpan cache 15 detik
 export async function getKomikList(): Promise<Komik[]> {
+  const token = await getToken();
   const response = await fetch(`${API_BASE_URL}/komik`, {
-    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    headers: { Authorization: `Bearer ${token}` },
     next: { revalidate: 15 },
   });
   const hasil = await response.json();
