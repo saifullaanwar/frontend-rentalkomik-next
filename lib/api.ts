@@ -19,12 +19,24 @@ async function fetchAPI<T>(endpoint: string): Promise<T> {
   return hasil.data as T;
 }
 
-export function getKategoriList(): Promise<Kategori[]> {
-  return fetchAPI<Kategori[]>('/kategori');
+// Kategori jarang berubah — simpan cache 60 detik
+export async function getKategoriList(): Promise<Kategori[]> {
+  const response = await fetch(`${API_BASE_URL}/kategori`, {
+    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    next: { revalidate: 60 },
+  });
+  const hasil = await response.json();
+  return hasil.data as Kategori[];
 }
 
-export function getKomikList(): Promise<Komik[]> {
-  return fetchAPI<Komik[]>('/komik');
+// Komik bisa berubah stoknya — simpan cache 15 detik
+export async function getKomikList(): Promise<Komik[]> {
+  const response = await fetch(`${API_BASE_URL}/komik`, {
+    headers: { Authorization: `Bearer ${API_TOKEN}` },
+    next: { revalidate: 15 },
+  });
+  const hasil = await response.json();
+  return hasil.data as Komik[];
 }
 
 export async function getKomikById(id: string): Promise<Komik | null> {
